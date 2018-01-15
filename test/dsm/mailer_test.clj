@@ -3,12 +3,56 @@
     [clojure.test :refer :all]
     [duct.core      :as duct]
     [integrant.core :as ig]
+    [dsm.main]
     [dsm.mailer     :as mailer]))
 
 (duct/load-hierarchy)
 
+(derive :duct.logger/fake :duct/logger)
+
 (deftest key-test
-  (is (isa? :dsm/mailer :duct/module)))
+  (is (isa? :dsm/module :duct/module))
+  (is (isa? :dsm/mailer :duct/mailer)))
+
+(def base-mailer-system
+  {:dsm/module {},
+   :dsm/mailer {:ssl       true,
+                :save-path nil,
+                :tls       nil,
+                :port      nil,
+                :host      nil,
+                :from      nil,
+                :logger    nil,
+                :reply-to  nil,
+                :pass      nil,
+                :user      nil,
+                :templates-path nil}})
+
+
+(deftest module-test
+  (testing "blank production config"
+    (is (= (-> {:duct.core/environment :production,
+                :duct.logger/fake      {}}
+               (merge base-mailer-system)
+               (assoc-in [:dsm/mailer :deliveries] nil)
+               (assoc-in [:dsm/mailer :type] "smtp-mailer"))
+
+           (-> (duct/prep {:duct.core/environment :production
+                           :duct.logger/fake      {}
+                           :dsm/module            {}})
+               (assoc-in [:dsm/mailer :deliveries] nil)))))
+
+  (testing "blank development config"
+    (is (= (-> {:duct.core/environment :development,
+                :duct.logger/fake {}}
+               (merge base-mailer-system)
+               (assoc-in [:dsm/mailer :deliveries] nil)
+               (assoc-in [:dsm/mailer :type] "test-mailer"))
+
+           (-> (duct/prep {:duct.core/environment :development
+                           :duct.logger/fake      {}
+                           :dsm/module            {}})
+               (assoc-in [:dsm/mailer :deliveries] nil))))))
 
 (defmethod mailer/email-model :registration
   [template-type lang to data]
@@ -27,7 +71,8 @@
 
 (deftest test-mailer-test
   (testing "should deliver email"
-    (let [mailer (ig/init-key :dsm/mailer {:from "MJ <some-email@example.com>"})
+    (let [mailer (ig/init-key :dsm/mailer {:type "test-mailer"
+                                           :from "MJ <some-email@example.com>"})
           deliveries (-> mailer
                          (mailer/deliver! :registration
                                           "some-email@example.com"
@@ -44,10 +89,12 @@
         (is (= "Hi, Jan Kowalski. You are registered. Kind regards,\nThe Team" content)))
       (ig/halt-key! :dsm/mailer mailer))))
 
-(comment
+
+#_(comment
   ; Testing from the REPL
   (let [email "some-email@example.com"]
-    (-> (ig/init-key :dsm/mailer {:from (format "MJ <%s>" email)
+    (-> (ig/init-key :dsm/mailer {:type "smtp-mailer"
+                                  :from (format "MJ <%s>" email)
                                   :host "smtp.gmail.com"
                                   :user email
                                   :pass "123456789"})

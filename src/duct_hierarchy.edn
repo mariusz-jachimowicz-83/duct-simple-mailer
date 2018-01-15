@@ -1,1 +1,2 @@
-{:dsm/mailer [:duct/module]}
+{:dsm/module [:duct/module]
+ :dsm/mailer [:duct/mailer]}
