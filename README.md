@@ -5,11 +5,8 @@ Very simple email sender component for Duct framework
 
 ## Installation
 
-To install, add the following to your project `:dependencies:`
+[![Clojars Project](https://img.shields.io/clojars/v/com.mjachimowicz/duct-simple-mailer.svg)](https://clojars.org/com.mjachimowicz/duct-simple-mailer)
 
-```clojure
-[com.mjachimowicz/duct-simple-mailer "0.1.2"]
-```
 ## Usage
 
 To add this module to your configuration, add the `:dsm/module` key:
