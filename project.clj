@@ -1,4 +1,4 @@
-(defproject com.mjachimowicz/duct-simple-mailer "0.1.2-SNAPSHOT"
+(defproject com.mjachimowicz/duct-simple-mailer "0.1.2"
   :description "Very simple email sender component for Duct framework"
   :url "https://github.com/mariusz-jachimowicz-83/duct-simple-mailer"
   :license {:name "Eclipse Public License"
